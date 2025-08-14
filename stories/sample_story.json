@@ -1,0 +1,49 @@
+{
+  "scenes": [
+    {
+      "id": "intro",
+      "text": "You wake in a dim cave. A faint [[torch]] lies near a narrow passage.",
+      "choices": [
+        {"id": "take_torch", "label": "Pick up the torch", "effects": ["inv.add(\"torch\")", "flag.hasTorch = true"], "target": "junction"},
+        {"id": "go_dark", "label": "Proceed without the torch", "effects": ["flag.hasTorch = false"], "target": "junction"}
+      ]
+    },
+    {
+      "id": "junction",
+      "text": "The passage splits. Left air is cold. Right smells of moss.",
+      "choices": [
+        {"id": "left_path", "label": "Go left (cold)", "target": "ice_chamber", "conditions": ["flag.hasTorch"]},
+        {"id": "right_path", "label": "Go right (moss)", "target": "moss_room"},
+        {"id": "feel_way", "label": "Feel your way left in darkness", "target": "pit_fall", "conditions": ["not flag.hasTorch"], "type": "hidden"}
+      ]
+    },
+    {
+      "id": "ice_chamber",
+      "text": "Ice crystals glitter. A frozen door blocks the far end.",
+      "choices": [
+        {"id": "melt_ice", "label": "Hold torch to the ice", "effects": ["stat.energy -= 1"], "target": "treasure_room", "conditions": ["flag.hasTorch"]},
+        {"id": "retreat", "label": "Return to junction", "target": "junction"}
+      ]
+    },
+    {
+      "id": "moss_room",
+      "text": "Soft moss dampens your steps. Something shimmers in the wall.",
+      "choices": [
+        {"id": "inspect_shimmer", "label": "Inspect the shimmer", "effects": ["inv.add(\"crystal\")"], "target": "junction"},
+        {"id": "rest", "label": "Rest briefly", "effects": ["stat.energy += 2"], "target": "junction"}
+      ]
+    },
+    {
+      "id": "pit_fall",
+      "text": "You stumble and fall into a pit. This is the end of your journey.",
+      "endings": [ {"code": "FALL_BAD", "category": "bad"} ],
+      "choices": []
+    },
+    {
+      "id": "treasure_room",
+      "text": "Behind the melted ice lies a small chamber with a radiant gem.",
+      "endings": [ {"code": "GEM_GOOD", "category": "good"} ],
+      "choices": []
+    }
+  ]
+}

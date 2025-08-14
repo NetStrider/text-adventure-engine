@@ -1,0 +1,15 @@
+[project]
+name = "text_adventure_engine"
+version = "0.1.0"
+description = "Modular text-based adventure engine with branching narratives, state, and extensibility."
+authors = [ { name = "Author" } ]
+requires-python = ">=3.10"
+readme = "README.md"
+license = { text = "MIT" }
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"

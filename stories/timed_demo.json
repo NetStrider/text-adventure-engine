@@ -1,0 +1,18 @@
+{
+  "scenes": [
+    {
+      "id": "timed_intro",
+      "text": "A pedestal hums. You must choose quickly.",
+      "choices": [
+        {"id": "wait_it_out", "label": "Stand and wait (default after timeout)", "type": "timed", "timeout_ms": 500, "default": true, "effects": ["stat.oxygen -= 1"], "target": "timed_result"},
+        {"id": "dash_for_it", "label": "Dash forward immediately", "type": "timed", "timeout_ms": 500, "effects": ["stat.oxygen -= 2"], "target": "timed_result"}
+      ]
+    },
+    {
+      "id": "timed_result",
+      "text": "The outcome is sealed. Your O2: [[oxygen]]",
+      "choices": [],
+      "endings": [{"code": "TIMED_END", "category": "neutral"}]
+    }
+  ]
+}

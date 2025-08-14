@@ -1,0 +1,51 @@
+{
+  "scenes": [
+    {
+      "id": "docking_breach",
+      "text": "You clamp onto the derelict cathedral-ship. A thin hiss: microfractures vent precious [[oxygen]]. Red lumen glands flicker.",
+      "choices": [
+        {"id": "seal_with_foam", "label": "Spray sealant foam over fractures (-1 oxygen)", "effects": ["stat.oxygen -= 1", "flag.breachSealed = true"], "target": "airlock_triage"},
+        {"id": "rush_inside", "label": "Rush inside ignoring the hiss (-2 oxygen)", "effects": ["stat.oxygen -= 2"], "target": "airlock_triage"}
+      ]
+    },
+    {
+      "id": "airlock_triage",
+      "text": "A bone-ribbed airlock groans. Condensation beads on organic valves. Your readout blinks O2: [[oxygen]].",
+      "choices": [
+  {"id": "stabilize", "label": "Stabilize oxygen mix (-1 oxygen, +stability)", "effects": ["stat.oxygen -= 1", "stat.stability += 1"]},
+        {"id": "skip_protocol", "label": "Skip protocol (risk embolism, -0 oxygen)", "effects": [], "target": "dark_corridor"},
+        {"id": "inspect_creche", "label": "Inspect a larval creche (hidden shard)", "effects": ["flag.intelShard1 = true"], "type": "hidden", "conditions": ["stat.stability >= 1"], "target": "dark_corridor"}
+      ]
+    },
+    {
+      "id": "dark_corridor",
+      "text": "Narrow corridor pulses faint hymnal static. Filaments sense your heat. A sealed data cyst blocks forward progress.",
+      "choices": [
+        {"id": "burn_through", "label": "Burn through cyst (-2 oxygen)", "effects": ["stat.oxygen -= 2"], "target": "data_core"},
+        {"id": "decode_chant", "label": "Hum matching resonance (-1 oxygen, +stability)", "effects": ["stat.oxygen -= 1", "stat.stability += 1"], "target": "data_core"},
+        {"id": "abort_here", "label": "Retreat to pod (abort mission)", "effects": ["end(\"ABORT_EARLY\")"], "target": "abort_pod"}
+      ]
+    },
+    {
+      "id": "data_core",
+      "text": "You reach a spheroid choir of calcified nodes. Interfaces bloom when your shard (if any) nears.",
+      "choices": [
+        {"id": "slot_shard", "label": "Slot recovered shard (unlock optimized path)", "conditions": ["flag.intelShard1"], "effects": ["stat.oxygen += 1"], "target": "deep_access"},
+        {"id": "force_link", "label": "Force a raw link (-3 oxygen)", "effects": ["stat.oxygen -= 3"], "target": "deep_access"},
+        {"id": "abort", "label": "Abort and transmit partial dump", "effects": ["end(\"PARTIAL_DUMP\")"], "target": "abort_pod"}
+      ]
+    },
+    {
+      "id": "abort_pod",
+      "text": "You detach, thrusters sputtering. Data fragments flicker across your console.",
+      "endings": [ {"code": "PARTIAL_DUMP", "category": "neutral"}, {"code": "ABORT_EARLY", "category": "neutral"} ],
+      "choices": []
+    },
+    {
+      "id": "deep_access",
+      "text": "A sanctum of quiet bone. The choir harmonizes; a coherent packet forms—mission success.",
+      "endings": [ {"code": "FULL_RELAY", "category": "good"} ],
+      "choices": []
+    }
+  ]
+}
