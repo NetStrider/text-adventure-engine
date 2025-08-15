@@ -31,3 +31,22 @@ def test_cli_validate_reports_ok_or_issues():
     rc, out = run_cli_with_input(['stories/relic_node_slice.json', 'docking_breach'], 'validate\nquit\n')
     assert rc == 0
     assert 'Validation' in out
+
+
+def test_cli_save_load_roundtrip(tmp_path):
+    savefile = tmp_path / 'savegame.json'
+    # Start CLI, make no moves, save and exit
+    rc, out = run_cli_with_input(
+        ['stories/relic_node_slice.json', 'docking_breach'],
+        f'save {str(savefile)}\nquit\n',
+    )
+    assert rc == 0
+    assert 'Saved to' in out
+
+    # Start a fresh CLI and load the save
+    rc2, out2 = run_cli_with_input(
+        ['stories/relic_node_slice.json', 'docking_breach'],
+        f'load {str(savefile)}\nquit\n',
+    )
+    assert rc2 == 0
+    assert 'Loaded from' in out2

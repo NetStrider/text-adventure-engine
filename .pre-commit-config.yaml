@@ -1,25 +1,24 @@
 repos:
-repos:
-	- repo: https://github.com/pre-commit/pre-commit-hooks
-		rev: v4.4.0
-		hooks:
-			- id: trailing-whitespace
-			- id: end-of-file-fixer
-			- id: check-yaml
-			- id: check-added-large-files
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
 
-# Local hooks: rely on system / venv-installed tools. After creating the venv,
-# run `make precommit-install` to install pre-commit and then `pre-commit install`.
-	- repo: local
-		hooks:
-			- id: pytest
-				name: pytest
-				entry: pytest -q
-				language: system
-				types: [python]
-			- id: markdownlint
-				name: markdownlint
-		# use npx so markdownlint CLI runs without global install when node is present
-		entry: npx markdownlint-cli "**/*.md" --config .markdownlint.json
-				language: system
-				files: \.(md|MD)$
+  - repo: local
+    hooks:
+      - id: pytest
+        name: pytest
+        entry: pytest -q
+        language: system
+        types: [python]
+
+
+
+      - id: markdownlint
+        name: markdownlint
+        entry: npx markdownlint-cli "**/*.md" --config .markdownlint.json
+        language: system
+        files: \.(md|MD)$

@@ -4,6 +4,7 @@ import sys
 import time
 from typing import Optional
 from src.engine import load_default_engine, StoryError
+from src.tokens import extract_tokens
 from src.validator import validate
 
 # Default story path (relative to project root)
@@ -13,9 +14,22 @@ STORY_PATH = os.path.join(
 
 INTRO = (
     "Text Adventure (Prototype)\n"
-    "Type the choice id or number. Type 'inv' for inventory,\n"
-    "'state' for flags/stats, 'quit' to exit.\n"
+    "Commands: number|id, inv, state, tokens, history, save <file>,\n"
+    "load <file>, validate [n], wait <ms>, help, quit\n"
 )
+
+HELP_TEXT = """Commands:
+    inv                Show inventory
+    state              Show flags, stats, reputation
+    tokens             Extract [[tokens]] in current scene
+    history            Show taken choice ids
+    save <file>        Save game state to JSON file
+    load <file>        Load game state from JSON file
+    validate [max]     Validate story graph (default max choices=12)
+    wait <ms>          Sleep ms (advance timed choices)
+    help               Show this help
+    quit               Exit
+"""
 
 
 def main():
@@ -34,7 +48,7 @@ def main():
     while True:
         scene = engine.current_scene()
         print(f"\n== {scene.id.upper()} ==")
-        print(scene.text)
+        print(engine.format_text(scene.text))
         if engine.state.ended:
             print(f"\n*** THE END ({engine.state.ending_code}) ***")
             break
@@ -61,6 +75,9 @@ def main():
         if cmd.lower() in ("quit", "exit"):
             print("Goodbye")
             break
+        if cmd.lower() == 'help':
+            print(HELP_TEXT)
+            continue
         if cmd.lower().startswith('wait'):
             parts = cmd.split()
             ms = 500
@@ -76,17 +93,59 @@ def main():
                 for k, v in inv.items():
                     print(f" - {k} x{v}")
             continue
+        if cmd.lower() == 'history':
+            if not engine.state.history:
+                print("(no choices yet)")
+            else:
+                print("History:", ' -> '.join(engine.state.history))
+            continue
         if cmd.lower() == 'state':
             print("Flags:", engine.state.flags)
             print("Stats:", engine.state.stats)
             print("Reputation:", engine.state.reputation)
+            continue
+        if cmd.lower() == 'tokens':
+            toks = extract_tokens(scene.text)
+            if not toks:
+                print("(no tokens)")
+            else:
+                print("Tokens:", ', '.join(toks))
+            continue
+        if cmd.lower().startswith('save'):
+            parts = cmd.split(maxsplit=1)
+            if len(parts) < 2:
+                print("Usage: save <file>")
+                continue
+            path = os.path.abspath(parts[1])
+            try:
+                engine.save(path)
+                print(f"Saved to {path}")
+            except Exception as e:
+                print(f"Save error: {e}")
+            continue
+        if cmd.lower().startswith('load'):
+            parts = cmd.split(maxsplit=1)
+            if len(parts) < 2:
+                print("Usage: load <file>")
+                continue
+            path = os.path.abspath(parts[1])
+            try:
+                engine.load(path)
+                print(f"Loaded from {path}")
+            except Exception as e:
+                print(f"Load error: {e}")
             continue
         if cmd.lower().startswith('validate'):
             parts = cmd.split()
             maxc = 12
             if len(parts) > 1 and parts[1].isdigit():
                 maxc = int(parts[1])
-            issues = validate(engine.scenes, engine.state.scene_id, max_choices=maxc)
+            start_for_validate = engine.state.scene_id or ''
+            issues = validate(
+                engine.scenes,
+                start_for_validate,
+                max_choices=maxc,
+            )
             if not issues:
                 print("Validation: OK")
             else:
@@ -116,6 +175,6 @@ def main():
             print(f"Error: {e}")
             continue
 
+
 if __name__ == '__main__':
     main()
-

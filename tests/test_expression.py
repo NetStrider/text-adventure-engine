@@ -1,11 +1,3 @@
-import os
-import sys
-
-# Ensure project root is importable
-ROOT = os.path.dirname(os.path.dirname(__file__))
-if ROOT not in sys.path:
-    sys.path.insert(0, ROOT)
-
 from src.expression import safe_eval, make_local_map
 from src.engine import GameState
 
@@ -64,4 +56,3 @@ def test_reject_unsafe_calls_and_imports():
     local = make_local_map(s)
     assert safe_eval("__import__('os').system('echo hi')", local) is False
     assert safe_eval('open("x")', local) is False
-

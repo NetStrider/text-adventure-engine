@@ -1,17 +1,7 @@
-import sys
+from src.engine import load_story, Engine, StoryError
+
 import pathlib
-
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-SRC = ROOT / 'src'
-if str(SRC) not in sys.path:
-    sys.path.insert(0, str(SRC))
-
-import engine  # type: ignore  # noqa: E402 (import after path mutation)
-
-load_story = engine.load_story
-Engine = engine.Engine
-StoryError = engine.StoryError
-
 STORY = str(ROOT / 'stories' / 'sample_story.json')
 
 

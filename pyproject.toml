@@ -6,9 +6,26 @@ authors = [ { name = "Author" } ]
 requires-python = ">=3.10"
 readme = "README.md"
 license = { text = "MIT" }
+keywords = ["text", "adventure", "game", "engine", "interactive-fiction", "narrative"]
+classifiers = [
+	"Programming Language :: Python :: 3",
+	"License :: OSI Approved :: MIT License",
+	"Intended Audience :: Developers",
+	"Topic :: Games/Entertainment",
+	"Topic :: Software Development :: Libraries",
+]
 
 [project.optional-dependencies]
-dev = ["pytest"]
+dev = [
+	"pytest",
+	"pytest-cov",
+	"mypy",
+	"coverage",
+	"pre-commit",
+]
+
+[project.scripts]
+text-adventure = "src.cli:main"
 
 [build-system]
 requires = ["setuptools>=61.0"]

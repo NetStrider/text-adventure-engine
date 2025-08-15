@@ -78,8 +78,12 @@ class ExpressionContext:
 
     def resolve(self, expr: str) -> Any:
         try:
-            # Import locally to avoid package import timing issues during test collection
-            from src.expression import safe_eval, make_local_map  # type: ignore
+            # Import locally to avoid package import timing issues
+            # during test collection
+            from src.expression import (
+                safe_eval,
+                make_local_map,
+                )
 
             local = make_local_map(self.state)
             # Support legacy `inventory.has(x)` by rewriting to inv_has(x)
@@ -229,17 +233,80 @@ class Engine:
             self.expr_ctx.resolve(e) for e in choice.conditions
         ):
             raise StoryError('Hidden choice not available')
-        apply_effects(choice.effects, self.state)
-        # Plugin hook: choice selected (before scene transition)
+        # Plugin hook: choice selected (before effects/state changes)
         self._emit_hook('on_choice_selected', choice)
-        # Plugin hook: state changed by effects
+        # Snapshot state for delta computation
+        try:
+            old_state = asdict(self.state)
+        except Exception:
+            old_state = {}
+        # Apply effects to the state
+        apply_effects(choice.effects, self.state)
+        # Plugin hook: after effects applied to the state
+        self._emit_hook('on_choice_effects_applied', choice, self.state)
+    # Plugin hook: state changed by effects
+    # (full state for backward compat)
         self._emit_hook('on_state_change', self.state)
+    # Emit a compact delta describing what changed
+    # (new hook: on_state_delta)
+        try:
+            new_state = asdict(self.state)
+            delta: Dict[str, Any] = {}
+            # keys to compare
+            for key in ('flags', 'stats', 'inventory', 'reputation'):
+                old_map = old_state.get(key, {}) or {}
+                new_map = new_state.get(key, {}) or {}
+                changes: Dict[str, Any] = {}
+                # keys present in either
+                for k in set(list(old_map.keys()) + list(new_map.keys())):
+                    o = old_map.get(k)
+                    n = new_map.get(k)
+                    if o != n:
+                        changes[k] = {'old': o, 'new': n}
+                if changes:
+                    delta[key] = changes
+            # scene change
+            if old_state.get('scene_id') != new_state.get('scene_id'):
+                delta['scene_id'] = {
+                    'old': old_state.get('scene_id'),
+                    'new': new_state.get('scene_id'),
+                }
+            # history append (simple heuristic)
+            old_hist = old_state.get('history', []) or []
+            new_hist = new_state.get('history', []) or []
+            if len(new_hist) > len(old_hist):
+                delta['history_added'] = new_hist[len(old_hist):]
+            # ended/ending_code
+            if old_state.get('ended') != new_state.get('ended'):
+                delta['ended'] = {
+                    'old': old_state.get('ended'),
+                    'new': new_state.get('ended'),
+                }
+            if old_state.get('ending_code') != new_state.get('ending_code'):
+                delta['ending_code'] = {
+                    'old': old_state.get('ending_code'),
+                    'new': new_state.get('ending_code'),
+                }
+            if delta:
+                self._emit_hook('on_state_delta', delta)
+        except Exception:
+            # don't allow plugin delta emission to break gameplay
+            pass
         self.state.history.append(choice.id)
         if choice.target:
             if choice.target not in self.scenes:
                 raise StoryError(f"Target scene '{choice.target}' missing")
+            old_scene = scene
             self.state.scene_id = choice.target
         new_scene = self.current_scene()
+        # Plugin hook: transition from old scene to new scene
+        # (if any)
+        try:
+            _old = locals().get('old_scene')
+            self._emit_hook('on_choice_transition', choice, _old, new_scene)
+        except UnboundLocalError:
+            # old_scene may not be defined if no transition occurred
+            pass
         if new_scene.endings and not self.state.ended:
             self.state.ended = True
             self.state.ending_code = new_scene.endings[0].get('code')
@@ -262,6 +329,7 @@ class Engine:
     def _emit_scene_enter(self, scene: Scene):
         self._emit_hook('on_scene_enter', scene)
     # Timed choice helpers
+
     def _init_timers(self, scene: Scene):
         self._timers.clear()
         self._expired.clear()
@@ -309,8 +377,31 @@ class Engine:
             raise StoryError('Save file missing state')
         self.state = GameState(**state_data)
         self.expr_ctx = ExpressionContext(self.state)
-    # Emit state change then scene enter for loaded state
-    # (already emitted inside the method body)
+        # Emit hooks similar to initialization
+        try:
+            self._emit_hook('on_state_change', self.state)
+            scene = self.current_scene()
+            self._emit_scene_enter(scene)
+            if self.state.ended:
+                self._emit_hook('on_game_end', scene)
+            else:
+                self._init_timers(scene)
+        except Exception:
+            pass
+
+    def format_text(self, text: str) -> str:
+        """Run text through format_output hooks (if any)."""
+        out = text
+        for plugin in self.plugins:
+            hook = getattr(plugin, 'format_output', None)
+            if callable(hook):
+                try:
+                    val = hook(self, out)
+                    if isinstance(val, str):
+                        out = val
+                except Exception:
+                    continue
+        return out
 
 
 def load_default_engine(

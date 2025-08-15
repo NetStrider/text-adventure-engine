@@ -56,23 +56,38 @@ pip install -e .[dev]
 pytest -q
 ```
 
-Commands in CLI:
+CLI Commands:
 
-- Enter number or choice id to pick.
-- inv - show inventory
-- state - show flags/stats/reputation
-- validate [maxChoices] - run validation (default maxChoices=12)
-- quit - exit game
+- number or choice id: select a choice
+- inv: show inventory
+- state: show flags/stats/reputation
+- tokens: list [[tokens]] in current scene
+- history: show taken choice ids
+- save <file>: save game state JSON
+- load <file>: load previously saved state
+- validate [maxChoices]: validate story (default 12)
+- wait <ms>: pause to allow timed choices to expire
+- help: show command summary
+- quit|exit: exit game
 
-## Quick demo: timed choice
+## Quick demos
 
-You can run the CLI against the timed-demo story to see auto-selection of a default timed choice.
+Timed choice auto-selection:
 
 ```powershell
-# From the project root
 python -m src.cli stories/timed_demo.json timed_intro
-# In the CLI, you can use `wait <ms>` to pause for a number of milliseconds, e.g.
-# wait 600  -> waits 600ms so the timed choice expires
+wait 600
+```
+
+Save / load round trip:
+
+```powershell
+python -m src.cli stories/relic_node_slice.json docking_breach
+# make a move, then:
+save savegame.json
+quit
+python -m src.cli stories/relic_node_slice.json docking_breach
+load savegame.json
 ```
 
 ## Story JSON Schema (Incremental)
@@ -234,3 +249,31 @@ make precommit-install
 ```
 
 The repository includes `scripts/setup-venv.ps1` and `scripts/setup-venv.sh` for convenient environment setup on Windows and POSIX systems.
+
+### Run linters & pre-commit locally
+
+After creating and activating your virtual environment, run the project's linters and pre-commit hooks like this.
+
+PowerShell (Windows):
+
+```powershell
+# activate venv from project root
+.\.venv\Scripts\Activate.ps1
+# run pre-commit checks across the repository
+python -m pre_commit run --all-files
+# run markdown linter on the README and docs
+npx markdownlint-cli "README.md" "docs/*.md" --config .markdownlint.json
+```
+
+POSIX (macOS / Linux):
+
+```bash
+source .venv/bin/activate
+python -m pre_commit run --all-files
+npx markdownlint-cli "README.md" "docs/*.md" --config .markdownlint.json
+```
+
+Notes:
+
+- If a hook modifies files (e.g. trailing whitespace or EOF fixes), re-run the hook or commit the changes before pushing.
+- If `pre-commit` isn't on your PATH use `python -m pre_commit ...` as shown above.
