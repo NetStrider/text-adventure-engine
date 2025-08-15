@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: venv install test lint docs-lint precommit-install
+.PHONY: venv install test lint docs-lint precommit-install typecheck coverage
 
 venv:
 	python -m venv .venv
@@ -14,6 +14,12 @@ test:
 
 lint: docs-lint
 	pytest -q
+
+typecheck:
+	mypy src
+
+coverage:
+	pytest -q --cov=src --cov-report=term-missing --cov-report=xml
 
 docs-lint:
 	markdownlint "**/*.md" --config .markdownlint.json

@@ -1,6 +1,6 @@
 # Text Based Adventure Game
 
-[![CI](https://github.com/OWNER/REPO/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/ci.yml)
+[![CI](https://github.com/NetStrider/text-adventure-engine/actions/workflows/ci.yml/badge.svg)](https://github.com/NetStrider/text-adventure-engine/actions/workflows/ci.yml)
 
 This text based adventure game is a fun and interactive way to explore different scenarios and make choices that affect the outcome of the story. Players immerse themselves in a rich narrative, encountering challenges and puzzles. With each decision the story unfolds uniquely, providing a personalized experience and replay value.
 
@@ -32,6 +32,8 @@ Install (editable) and run the prototype CLI.
 ```bash
 pip install -e .[dev]
 python -m src.cli
+## or use the console script
+text-adventure
 ```
 
 ### Recommended: use a virtual environment
@@ -192,12 +194,6 @@ pytest -q
 
 CLI command `validate` (optionally pass max choices). Reports:
 
-- Unreachable scenes
-- Missing choice targets
-- Scenes exceeding max choices (default 12)
-- Duplicate choice ids (per scene)
-- Dangling scenes (no choices & no endings)
-- Scenes mixing endings and choices
 - Unreachable scenes
 - Missing choice targets
 - Scenes exceeding max choices (default 12)
